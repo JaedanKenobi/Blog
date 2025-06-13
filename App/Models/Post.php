@@ -1,6 +1,6 @@
 <?php
 namespace App\Models;
-
+require_once __DIR__ . '../../config/database.php';
 use PDO;
 
 class Post
@@ -18,9 +18,9 @@ class Post
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function createPost($title, $content, $image)
+    public function createPost($title, $content, $image, $user_id)
     {
-        $stmt = $this->pdo->prepare("INSERT INTO posts (title, content, image, created_at) VALUES (?, ?, ?, NOW())");
-        return $stmt->execute([$title, $content, $image]);
+        $stmt = $this->pdo->prepare("INSERT INTO posts (title, content, image, user_id, created_at) VALUES (?, ?, ?, ?, NOW())");
+        return $stmt->execute([$title, $content, $image, $user_id]);
     }
 }

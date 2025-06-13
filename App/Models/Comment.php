@@ -1,6 +1,6 @@
 <?php
 namespace App\Models;
-
+require_once __DIR__ . '../../config/database.php';
 use PDO;
 
 class Comment

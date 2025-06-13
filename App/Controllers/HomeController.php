@@ -1,15 +1,26 @@
 <?php
+
 namespace App\Controllers;
+require_once __DIR__ . '/../../config/database.php';
 
-use App\Models\Post;
-
+use PDO;
+session_start();
 class HomeController
 {
     public function index()
     {
-        $postModel = new Post();
-        $posts = $postModel->getAllPosts();
+     
 
-        require __DIR__ . '/../Views/home.php';
+        
+        if (!isset($_SESSION['pseudo'])) {
+            header('Location: index.php?page=login');
+            exit;
+        }
+
+        
+        $pseudo = $_SESSION['pseudo'];
+
+        
+        include_once __DIR__ . '/../Views/home.php';
     }
 }

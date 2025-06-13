@@ -1,70 +1,103 @@
 <?php
+
 namespace App\Controllers;
 
-use App\Models\Post;
-use App\Models\Comment;
+require_once __DIR__ . '/../../php/database.php';
 
-class PostController
-{
-    public function create()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $title = $_POST['title'] ?? '';
-            $content = $_POST['content'] ?? '';
-            $image = '';
+class PostController {
+    public function create() {
+        global $pdo;
 
-            // Gestion upload image simple
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
-                $allowed = ['jpg','jpeg','png','gif'];
-                $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                if (in_array(strtolower($ext), $allowed)) {
-                    $target = 'uploads/' . uniqid() . '.' . $ext;
-                    move_uploaded_file($_FILES['image']['tmp_name'], $target);
-                    $image = $target;
-                }
-            }
-
-            $postModel = new Post();
-            $postModel->createPost($title, $content, $image);
-
-            header('Location: index.php');
-            exit;
+        if (!isset($_SESSION['username'])) {
+            echo "Erreur : utilisateur non connecté.";
+            return;
         }
 
-        require __DIR__ . '/../Views/post_form.php';
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $content = $_POST['content'] ?? '';
+            $image = $_FILES['image'] ?? null;
+
+            $imagePath = null;
+            if ($image && $image['error'] === UPLOAD_ERR_OK) {
+                $imagePath = 'uploads/' . basename($image['name']);
+                move_uploaded_file($image['tmp_name'], __DIR__ . '/../../public/' . $imagePath);
+            }
+
+            $stmt = $pdo->prepare("INSERT INTO posts (username, content, image_path) VALUES (?, ?, ?)");
+            $stmt->execute([$_SESSION['username'], $content, $imagePath]);
+
+            header("Location: index.php?page=home");
+        } else {
+            require __DIR__ . '/../Views/post_create.php';
+        }
     }
 
-    public function show($id)
-    {
-        $postModel = new Post();
-        $commentModel = new Comment();
+    public function show($id) {
+        global $pdo;
 
-        $posts = $postModel->getAllPosts();
-        $post = null;
-        foreach ($posts as $p) {
-            if ($p['id'] == $id) {
-                $post = $p;
-                break;
+        $stmt = $pdo->prepare("SELECT * FROM posts WHERE id = ?");
+        $stmt->execute([$id]);
+        $post = $stmt->fetch();
+
+        require __DIR__ . '/../Views/post_show.php';
+    }
+
+    public function like() {
+        global $pdo;
+
+        if (!isset($_SESSION['username'])) {
+            echo "Erreur : utilisateur non connecté.";
+            return;
+        }
+
+        $postId = $_POST['post_id'] ?? null;
+
+        if ($postId) {
+            $stmt = $pdo->prepare("UPDATE posts SET likes = likes + 1 WHERE id = ?");
+            $stmt->execute([$postId]);
+
+            header("Location: index.php?page=home");
+        }
+    }
+
+    public function edit() {
+        global $pdo;
+
+        if (!isset($_SESSION['username'])) {
+            echo "Erreur : utilisateur non connecté.";
+            return;
+        }
+
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            $stmt = $pdo->prepare("SELECT * FROM posts WHERE id = ?");
+            $stmt->execute([$id]);
+            $post = $stmt->fetch();
+
+            if ($post && $post['username'] === $_SESSION['username']) {
+                require __DIR__ . '/../Views/post_edit.php';
+            } else {
+                echo "Erreur : vous ne pouvez pas modifier ce post.";
             }
         }
+    }
 
-        if (!$post) {
-            echo "Post non trouvé";
-            exit;
+    public function update() {
+        global $pdo;
+
+        if (!isset($_SESSION['username'])) {
+            echo "Erreur : utilisateur non connecté.";
+            return;
         }
 
-        $comments = $commentModel->getCommentsByPostId($id);
+        $id = $_POST['post_id'] ?? null;
+        $content = $_POST['content'] ?? '';
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $author = $_POST['author'] ?? 'Anonyme';
-            $content = $_POST['content'] ?? '';
-            if ($content) {
-                $commentModel->addComment($id, $author, $content);
-                header("Location: index.php?page=post&id=$id");
-                exit;
-            }
+        if ($id) {
+            $stmt = $pdo->prepare("UPDATE posts SET content = ? WHERE id = ? AND username = ?");
+            $stmt->execute([$content, $id, $_SESSION['username']]);
+
+            header("Location: index.php?page=home");
         }
-
-        require __DIR__ . '/../Views/post_list.php';
     }
 }

@@ -1,6 +1,6 @@
 <?php
 namespace App\Models;
-
+require_once __DIR__ . '../../config/database.php';
 use PDO;
 use PDOException;
 
@@ -11,7 +11,7 @@ class Database
 
     private function __construct()
     {
-        $config = require __DIR__ . '/../../config/database.php';
+        $config = require_once __DIR__ . '/../../config/database.php';
 
         try {
             $this->pdo = new PDO(

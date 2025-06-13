@@ -1,20 +1,28 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8" />
-<title>Accueil Blog</title>
-</head>
-<body>
-<h1>Bienvenue sur mon Blog</h1>
-<a href="/public/index.php?page=post_create">Créer un nouveau post</a>
+<h1>Bienvenue <?= htmlspecialchars($_SESSION['username'] ?? 'Visiteur') ?></h1>
+
+<?php if (isset($_SESSION['username'])): ?>
+    <a href="index.php?page=post_create">Créer un post</a> |
+    <a href="index.php?page=logout">Se déconnecter</a>
+<?php else: ?>
+    <a href="index.php?page=login">Se connecter</a>
+<?php endif; ?>
+
 <hr>
-<?php foreach($posts as $post): ?>
-    <h2><a href="index.php?page=post&id=<?= $post['id'] ?>"><?= htmlspecialchars($post['title']) ?></a></h2>
-    <p><?= nl2br(htmlspecialchars(substr($post['content'], 0, 100))) ?>...</p>
-    <?php if ($post['image']): ?>
-        <img src="<?= htmlspecialchars($post['image']) ?>" alt="Image post" width="150" />
-    <?php endif; ?>
+
+<?php foreach ($posts as $post): ?>
+    <div>
+        <p><strong><?= htmlspecialchars($post['username']) ?></strong> :</p>
+        <p><?= htmlspecialchars($post['content']) ?></p>
+        <?php if ($post['image_path']): ?>
+            <img src="<?= $post['image_path'] ?>" alt="Image" style="max-width: 200px;">
+        <?php endif; ?>
+        <form method="POST" action="index.php?page=like">
+            <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
+            <button type="submit">❤️ <?= $post['likes'] ?></button>
+        </form>
+        <?php if (isset($_SESSION['username']) && $_SESSION['username'] === $post['username']): ?>
+            <a href="index.php?page=edit_post&id=<?= $post['id'] ?>">✏️ Modifier</a>
+        <?php endif; ?>
+    </div>
     <hr>
 <?php endforeach; ?>
-</body>
-</html>
