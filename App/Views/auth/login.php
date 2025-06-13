@@ -12,9 +12,9 @@
     <?php endif; ?>
 
     <form method="POST" action="index.php?page=login">
-        <label for="pseudo">Votre pseudo :</label><br>
-        <input type="text" name="pseudo" id="pseudo" required><br><br>
-        <button type="submit">Se connecter</button>
-    </form>
+    <label for="username">Votre pseudo :</label><br>
+    <input type="text" name="username" id="username" required><br><br>
+    <button type="submit">Se connecter</button>
+</form>
 </body>
 </html>

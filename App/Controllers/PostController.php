@@ -28,7 +28,7 @@ class PostController {
 
             header("Location: index.php?page=home");
         } else {
-            require __DIR__ . '/../Views/post_create.php';
+            require_once __DIR__ . '/../Views/post_create.php';
         }
     }
 
@@ -39,7 +39,7 @@ class PostController {
         $stmt->execute([$id]);
         $post = $stmt->fetch();
 
-        require __DIR__ . '/../Views/post_show.php';
+        require_once __DIR__ . '/../Views/post_show.php';
     }
 
     public function like() {
@@ -75,7 +75,7 @@ class PostController {
             $post = $stmt->fetch();
 
             if ($post && $post['username'] === $_SESSION['username']) {
-                require __DIR__ . '/../Views/post_edit.php';
+                require_once __DIR__ . '/../Views/post_edit.php';
             } else {
                 echo "Erreur : vous ne pouvez pas modifier ce post.";
             }
